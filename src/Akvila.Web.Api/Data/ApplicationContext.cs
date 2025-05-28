@@ -1,0 +1,16 @@
+using System.Reactive.Subjects;
+using Akvila.Web.Api.Domains.Settings;
+
+namespace Akvila.Web.Api.Data;
+
+public class ApplicationContext {
+    private readonly ISubject<Settings> _settingsObservable;
+
+    public ApplicationContext(ISubject<Settings> settingsObservable) {
+        _settingsObservable = settingsObservable;
+
+        _settingsObservable.Subscribe(settings => Settings = settings);
+    }
+
+    public Settings Settings { get; private set; }
+}

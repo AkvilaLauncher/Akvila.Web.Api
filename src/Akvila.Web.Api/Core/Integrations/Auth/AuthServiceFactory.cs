@@ -1,0 +1,20 @@
+using Akvila.Web.Api.Core.Extensions;
+using AkvilaCore.Interfaces.Enums;
+
+namespace Akvila.Web.Api.Core.Integrations.Auth;
+
+public class AuthServiceFactory(IServiceProvider serviceProvider) : IAuthServiceFactory {
+    public IPlatformAuthService CreateAuthService(AuthType platformKey) {
+        return platformKey switch {
+            AuthType.Undefined => serviceProvider.GetRequiredService<UndefinedAuthService>(),
+            AuthType.DataLifeEngine => serviceProvider.GetRequiredService<DataLifeEngineAuthService>(),
+            AuthType.Any => serviceProvider.GetRequiredService<AnyAuthService>(),
+            AuthType.Azuriom => serviceProvider.GetRequiredService<AzuriomAuthService>(),
+            AuthType.EasyCabinet => serviceProvider.GetRequiredService<EasyCabinetAuthService>(),
+            AuthType.UnicoreCMS => serviceProvider.GetRequiredService<UnicoreCMSAuthService>(),
+            AuthType.CustomEndpoint => serviceProvider.GetRequiredService<CustomEndpointAuthService>(),
+            AuthType.NamelessMC => serviceProvider.GetRequiredService<CustomEndpointAuthService>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(platformKey), platformKey, null)
+        };
+    }
+}
