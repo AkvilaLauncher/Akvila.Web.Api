@@ -9,7 +9,7 @@ public class CustomEndpointAuthService(IHttpClientFactory httpClientFactory, IAk
     : IPlatformAuthService {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
-    public async Task<AuthResult> Auth(string login, string password) {
+    public virtual async Task<AuthResult> Auth(string login, string password) {
         var dto = JsonConvert.SerializeObject(new {
             Login = login,
             Password = password

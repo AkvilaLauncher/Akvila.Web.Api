@@ -33,20 +33,20 @@ public class ProfileHandler : IProfileHandler {
 
             if (string.IsNullOrEmpty(userName)) {
                 return Results.BadRequest(ResponseMessage.Create("Failed to identify the user",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
             }
 
             var user = await akvilaManager.Users.GetUserByName(userName);
 
             if (user is null) {
                 return Results.BadRequest(ResponseMessage.Create("Failed to identify the user",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
             }
 
             profiles = (await akvilaManager.Profiles.GetProfiles())
                 .Where(c =>
-                    c is { IsEnabled: true, UserWhiteListGuid.Count: 0 } ||
-                    c.UserWhiteListGuid.Any(g => g.Equals(user.Uuid)));
+                           c is { IsEnabled: true, UserWhiteListGuid.Count: 0 } ||
+                           c.UserWhiteListGuid.Any(g => g.Equals(user.Uuid)));
         } else if (context.User.IsInRole("Admin")) {
             profiles = await akvilaManager.Profiles.GetProfiles();
         }
@@ -57,31 +57,28 @@ public class ProfileHandler : IProfileHandler {
 
         foreach (var profile in dtoProfiles) {
             var originalProfile = gameProfiles.First(c => c.Name == profile.Name);
-            profile.Background =
-                $"{context.Request.Scheme}://{context.Request.Host}/api/v1/file/{originalProfile.BackgroundImageKey}";
+            profile.Background = $"{context.Request.Scheme}://{context.Request.Host}/api/v1/file/{originalProfile.BackgroundImageKey}";
         }
 
         return Results.Ok(ResponseMessage.Create(dtoProfiles.OrderByDescending(c => c.Priority), string.Empty,
-            HttpStatusCode.OK));
+                                                 HttpStatusCode.OK));
     }
 
     public static async Task<IResult> GetMinecraftVersions(IAkvilaManager akvilaManager, string gameLoader,
-        string? minecraftVersion) {
+                                                           string? minecraftVersion) {
         try {
             if (!Enum.TryParse<GameLoader>(gameLoader, out var loader)) {
                 return Results.BadRequest(ResponseMessage.Create("Failed to determine the type of loader",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
             }
 
             var versions = await akvilaManager.Profiles.GetAllowVersions(loader, minecraftVersion);
 
             return Results.Ok(ResponseMessage.Create(versions, "Available versions of Minecraft", HttpStatusCode.OK));
-        }
-        catch (VersionNotLoadedException versionNotLoadedException) {
+        } catch (VersionNotLoadedException versionNotLoadedException) {
             return Results.NotFound(ResponseMessage.Create(versionNotLoadedException.InnerExceptionMessage,
-                HttpStatusCode.NotFound));
-        }
-        catch (Exception e) {
+                                                           HttpStatusCode.NotFound));
+        } catch (Exception e) {
             Console.WriteLine(e);
             throw;
         }
@@ -98,33 +95,33 @@ public class ProfileHandler : IProfileHandler {
         try {
             if (!Enum.TryParse<GameLoader>(context.Request.Form["GameLoader"], out var gameLoader))
                 return Results.BadRequest(ResponseMessage.Create("Profile loader view could not be determined",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
 
             var createDto = new ProfileCreateDto {
-                Name = context.Request.Form["Name"],
-                DisplayName = context.Request.Form["DisplayName"],
-                Description = context.Request.Form["Description"],
-                Version = context.Request.Form["Version"],
-                LoaderVersion = context.Request.Form["LoaderVersion"],
-                GameLoader = gameLoader
-            };
+                                                     Name = context.Request.Form["Name"],
+                                                     DisplayName = context.Request.Form["DisplayName"],
+                                                     Description = context.Request.Form["Description"],
+                                                     Version = context.Request.Form["Version"],
+                                                     LoaderVersion = context.Request.Form["LoaderVersion"],
+                                                     GameLoader = gameLoader
+                                                 };
 
             var result = await validator.ValidateAsync(createDto);
 
             if (!result.IsValid)
                 return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
 
             var checkProfile = await akvilaManager.Profiles.GetProfile(createDto.Name);
 
             if (checkProfile is not null)
                 return Results.BadRequest(ResponseMessage.Create("A profile with this name already exists",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
 
             if (!await akvilaManager.Profiles.CanAddProfile(createDto.Name, createDto.Version, createDto.LoaderVersion,
-                    createDto.GameLoader))
+                                                            createDto.GameLoader))
                 return Results.BadRequest(ResponseMessage.Create("Unable to create a profile based on received data",
-                    HttpStatusCode.BadRequest));
+                                                                 HttpStatusCode.BadRequest));
 
             if (context.Request.Form.Files.FirstOrDefault() is { } formFile)
                 createDto.IconBase64 = await systemService.GetBase64FromImageFile(formFile);
@@ -139,15 +136,14 @@ public class ProfileHandler : IProfileHandler {
                 createDto.Description);
 
             return Results.Created($"/api/v1/profiles/{createDto.Name}",
-                ResponseMessage.Create(mapper.Map<ProfileReadDto>(profile), "Profile successfully created",
-                    HttpStatusCode.Created));
-        }
-        catch (Exception exception) {
+                                   ResponseMessage.Create(mapper.Map<ProfileReadDto>(profile), "Profile successfully created",
+                                                          HttpStatusCode.Created));
+        } catch (Exception exception) {
             Console.WriteLine(exception);
             Debug.WriteLine(exception);
 
             return Results.BadRequest(ResponseMessage.Create(exception.Message,
-                HttpStatusCode.BadRequest));
+                                                             HttpStatusCode.BadRequest));
         }
     }
 
@@ -160,21 +156,21 @@ public class ProfileHandler : IProfileHandler {
         IAkvilaManager akvilaManager,
         IValidator<ProfileUpdateDto> validator) {
         var updateDto = new ProfileUpdateDto {
-            Name = context.Request.Form["name"],
-            DisplayName = context.Request.Form["displayName"],
-            Description = context.Request.Form["description"],
-            OriginalName = context.Request.Form["originalName"],
-            JvmArguments = context.Request.Form["jvmArguments"],
-            GameArguments = context.Request.Form["gameArguments"],
-            Priority = int.TryParse(context.Request.Form["priority"], out var priority) ? priority : 0,
-            IsEnabled = context.Request.Form["enabled"] == "true"
-        };
+                                                 Name = context.Request.Form["name"],
+                                                 DisplayName = context.Request.Form["displayName"],
+                                                 Description = context.Request.Form["description"],
+                                                 OriginalName = context.Request.Form["originalName"],
+                                                 JvmArguments = context.Request.Form["jvmArguments"],
+                                                 GameArguments = context.Request.Form["gameArguments"],
+                                                 Priority = int.TryParse(context.Request.Form["priority"], out var priority) ? priority : 0,
+                                                 IsEnabled = context.Request.Form["enabled"] == "true"
+                                             };
 
         var result = await validator.ValidateAsync(updateDto);
 
         if (!result.IsValid)
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
-                HttpStatusCode.BadRequest));
+                                                             HttpStatusCode.BadRequest));
 
         var profile = await akvilaManager.Profiles.GetProfile(updateDto.OriginalName);
 
@@ -186,13 +182,13 @@ public class ProfileHandler : IProfileHandler {
 
             if (profileExists != null)
                 return Results.NotFound(ResponseMessage.Create("A profile with this name already exists",
-                    HttpStatusCode.NotFound));
+                                                               HttpStatusCode.NotFound));
         }
 
         if (!profile.CanEdit)
             return Results.NotFound(ResponseMessage.Create(
-                "Editing is not possible in the current state of the profile",
-                HttpStatusCode.NotFound));
+                                        "Editing is not possible in the current state of the profile", HttpStatusCode.NotFound));
+        
 
         var icon = context.Request.Form.Files["icon"] is null
             ? null
@@ -236,7 +232,7 @@ public class ProfileHandler : IProfileHandler {
 
         if (!result.IsValid)
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
-                HttpStatusCode.BadRequest));
+                                                             HttpStatusCode.BadRequest));
 
         var profile = await akvilaManager.Profiles.GetProfile(restoreDto.Name);
 
@@ -257,7 +253,7 @@ public class ProfileHandler : IProfileHandler {
         var result = await validator.ValidateAsync(profileDto);
         if (!result.IsValid)
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
-                HttpStatusCode.BadRequest));
+                                                             HttpStatusCode.BadRequest));
 
         var profile = await akvilaManager.Profiles.GetProfile(profileDto.Name);
 
@@ -283,8 +279,8 @@ public class ProfileHandler : IProfileHandler {
 
         if (!Enum.TryParse(createInfoDto.OsType, out OsType osType))
             return Results.BadRequest(ResponseMessage.Create(
-                "Failed to determine the operating system type of the profile",
-                HttpStatusCode.BadRequest));
+                                          "Failed to determine the operating system type of the profile",
+                                          HttpStatusCode.BadRequest));
 
         var osName = SystemHelper.GetStringOsType(osType);
 
@@ -292,7 +288,7 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{createInfoDto.ProfileName}\" was not found.",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var token = context.Request.Headers["Authorization"].FirstOrDefault();
 
@@ -309,16 +305,16 @@ public class ProfileHandler : IProfileHandler {
         user.Manager = akvilaManager;
 
         var profileInfo = await akvilaManager.Profiles.GetProfileInfo(profile.Name, new StartupOptions {
-            FullScreen = createInfoDto.IsFullScreen,
-            ServerIp = createInfoDto.GameAddress,
-            ServerPort = createInfoDto.GamePort,
-            ScreenHeight = createInfoDto.WindowHeight,
-            ScreenWidth = createInfoDto.WindowWidth,
-            MaximumRamMb = createInfoDto.RamSize,
-            MinimumRamMb = createInfoDto.RamSize,
-            OsName = osName,
-            OsArch = createInfoDto.OsArchitecture
-        }, user);
+                                                                                                           FullScreen = createInfoDto.IsFullScreen,
+                                                                                                           ServerIp = createInfoDto.GameAddress,
+                                                                                                           ServerPort = createInfoDto.GamePort,
+                                                                                                           ScreenHeight = createInfoDto.WindowHeight,
+                                                                                                           ScreenWidth = createInfoDto.WindowWidth,
+                                                                                                           MaximumRamMb = createInfoDto.RamSize,
+                                                                                                           MinimumRamMb = createInfoDto.RamSize,
+                                                                                                           OsName = osName,
+                                                                                                           OsArch = createInfoDto.OsArchitecture
+                                                                                                       }, user);
 
         var profileDto = mapper.Map<ProfileReadInfoDto>(profileInfo);
 
@@ -342,8 +338,8 @@ public class ProfileHandler : IProfileHandler {
 
         if (!Enum.TryParse(createInfoDto.OsType, out OsType osType))
             return Results.BadRequest(ResponseMessage.Create(
-                "Failed to determine the operating system type of the profile",
-                HttpStatusCode.BadRequest));
+                                          "Failed to determine the operating system type of the profile",
+                                          HttpStatusCode.BadRequest));
 
         var osName = SystemHelper.GetStringOsType(osType);
 
@@ -351,26 +347,26 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{createInfoDto.ProfileName}\" was not found.",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var user = new AuthUser {
-            AccessToken = new string('0', 50),
-            Uuid = Guid.NewGuid().ToString(),
-            Name = "GmlAdmin",
-            Manager = akvilaManager
-        };
+                                    AccessToken = new string('0', 50),
+                                    Uuid = Guid.NewGuid().ToString(),
+                                    Name = "GmlAdmin",
+                                    Manager = akvilaManager
+                                };
 
         var profileInfo = await akvilaManager.Profiles.GetProfileInfo(profile.Name, new StartupOptions {
-            FullScreen = createInfoDto.IsFullScreen,
-            ServerIp = createInfoDto.GameAddress,
-            ServerPort = createInfoDto.GamePort,
-            ScreenHeight = createInfoDto.WindowHeight,
-            ScreenWidth = createInfoDto.WindowWidth,
-            MaximumRamMb = createInfoDto.RamSize,
-            MinimumRamMb = createInfoDto.RamSize,
-            OsName = osName,
-            OsArch = createInfoDto.OsArchitecture
-        }, user);
+                                                                                                           FullScreen = createInfoDto.IsFullScreen,
+                                                                                                           ServerIp = createInfoDto.GameAddress,
+                                                                                                           ServerPort = createInfoDto.GamePort,
+                                                                                                           ScreenHeight = createInfoDto.WindowHeight,
+                                                                                                           ScreenWidth = createInfoDto.WindowWidth,
+                                                                                                           MaximumRamMb = createInfoDto.RamSize,
+                                                                                                           MinimumRamMb = createInfoDto.RamSize,
+                                                                                                           OsName = osName,
+                                                                                                           OsArch = createInfoDto.OsArchitecture
+                                                                                                       }, user);
 
         var whiteListPlayers = await akvilaManager.Users.GetUsers(profile.UserWhiteListGuid);
 
@@ -426,18 +422,18 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var user = await akvilaManager.Users.GetUserByUuid(userUuid);
 
         if (user is null)
             return Results.NotFound(ResponseMessage.Create($"The user with the UUID: \"{userUuid}\" was not found.",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (profile.UserWhiteListGuid.Any(c => c.Equals(userUuid)))
             return Results.BadRequest(ResponseMessage.Create(
-                $"The user with the UUID: \"{userUuid}\" is already in the white list of profile users",
-                HttpStatusCode.BadRequest));
+                                          $"The user with the UUID: \"{userUuid}\" is already in the white list of profile users",
+                                          HttpStatusCode.BadRequest));
 
         profile.UserWhiteListGuid.Add(user.Uuid);
         await akvilaManager.Profiles.SaveProfiles();
@@ -445,8 +441,8 @@ public class ProfileHandler : IProfileHandler {
         var mappedUser = mapper.Map<PlayerReadDto>(user);
 
         return Results.Ok(ResponseMessage.Create(mappedUser,
-            "User has been successfully added to the profile whitelist",
-            HttpStatusCode.OK));
+                                                 "User has been successfully added to the profile whitelist",
+                                                 HttpStatusCode.OK));
     }
 
     [Authorize]
@@ -458,13 +454,13 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var mods = await profile.GetModsAsync();
 
         return Results.Ok(ResponseMessage.Create(mapper.Map<List<ModReadDto>>(mods),
-            "The mod list has been successfully received",
-            HttpStatusCode.OK));
+                                                 "The mod list has been successfully received",
+                                                 HttpStatusCode.OK));
     }
 
     [Authorize]
@@ -477,18 +473,17 @@ public class ProfileHandler : IProfileHandler {
 
         if (!result.IsValid)
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
-                HttpStatusCode.BadRequest));
+                                                             HttpStatusCode.BadRequest));
 
         try {
             await akvilaManager.Mods.SetModDetails(detailsDto.Key, detailsDto.Title, detailsDto.Description);
 
             return Results.Ok(ResponseMessage.Create("Value successfully updated", HttpStatusCode.OK));
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             akvilaManager.BugTracker.CaptureException(exception);
             return Results.BadRequest(ResponseMessage.Create(
-                $"An error occurred while trying to update the mod information",
-                HttpStatusCode.BadRequest));
+                                          $"An error occurred while trying to update the mod information",
+                                          HttpStatusCode.BadRequest));
         }
     }
 
@@ -510,12 +505,12 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (await profile.CanLoadMods() == false) {
             return Results.BadRequest(ResponseMessage.Create(
-                $"This project \"{profileName}\" can't have mods.",
-                HttpStatusCode.NotFound));
+                                          $"This project \"{profileName}\" can't have mods.",
+                                          HttpStatusCode.NotFound));
         }
 
         foreach (var formFile in context.Request.Form.Files) {
@@ -532,8 +527,8 @@ public class ProfileHandler : IProfileHandler {
         var mods = await profile.GetModsAsync();
 
         return Results.Ok(ResponseMessage.Create(mapper.Map<List<ModReadDto>>(mods),
-            "The mod list has been successfully received",
-            HttpStatusCode.OK));
+                                                 "The mod list has been successfully received",
+                                                 HttpStatusCode.OK));
     }
 
     [Authorize]
@@ -548,12 +543,12 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (await profile.CanLoadMods() == false) {
             return Results.BadRequest(ResponseMessage.Create(
-                $"This project \"{profileName}\" can't have mods.",
-                HttpStatusCode.NotFound));
+                                          $"This project \"{profileName}\" can't have mods.",
+                                          HttpStatusCode.NotFound));
         }
 
         using (var client = httpClientFactory.CreateClient()) {
@@ -580,7 +575,7 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var mods = await profile.RemoveMod(fileName);
 
@@ -600,13 +595,13 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var mods = await profile.GetOptionalsModsAsync();
 
         return Results.Ok(ResponseMessage.Create(mapper.Map<List<ModReadDto>>(mods),
-            "The mod list has been successfully received",
-            HttpStatusCode.OK));
+                                                 "The mod list has been successfully received",
+                                                 HttpStatusCode.OK));
     }
 
     public static async Task<IResult> FindMods(
@@ -621,19 +616,19 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (await profile.CanLoadMods() == false) {
             return Results.BadRequest(ResponseMessage.Create(
-                $"This project \"{profileName}\" can't have mods.",
-                HttpStatusCode.NotFound));
+                                          $"This project \"{profileName}\" can't have mods.",
+                                          HttpStatusCode.NotFound));
         }
 
         var mods = await akvilaManager.Mods.FindModsAsync(profile.Loader, profile.GameVersion, modType, modName, take,
-            offset);
+                                                          offset);
 
         return Results.Ok(ResponseMessage.Create(mapper.Map<List<ExtendedModReadDto>>(mods),
-            "The mod list has been successfully received", HttpStatusCode.OK));
+                                                 "The mod list has been successfully received", HttpStatusCode.OK));
     }
 
     public static async Task<IResult> GetModInfo(
@@ -646,19 +641,19 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (await profile.CanLoadMods() == false) {
             return Results.BadRequest(ResponseMessage.Create(
-                $"This project \"{profileName}\" can't have mods.",
-                HttpStatusCode.NotFound));
+                                          $"This project \"{profileName}\" can't have mods.",
+                                          HttpStatusCode.NotFound));
         }
 
         var modInfo = await akvilaManager.Mods.GetInfo(modId, modType);
 
         if (modInfo is null) {
             return Results.NotFound(ResponseMessage.Create($"No mod with the specified identifier found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
         }
 
         var versions = await akvilaManager.Mods.GetVersions(modInfo, modType, profile.Loader, profile.GameVersion);
@@ -666,7 +661,7 @@ public class ProfileHandler : IProfileHandler {
         externalDto.Versions = mapper.Map<ModVersionDto[]>(versions);
 
         return Results.Ok(ResponseMessage.Create(externalDto, "The mod list has been successfully received",
-            HttpStatusCode.OK));
+                                                 HttpStatusCode.OK));
     }
 
     [Authorize]
@@ -678,23 +673,23 @@ public class ProfileHandler : IProfileHandler {
 
         if (profile is null)
             return Results.NotFound(ResponseMessage.Create($"Profile \"{profileName}\" was not found",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         var user = await akvilaManager.Users.GetUserByUuid(userUuid);
 
         if (user is null)
             return Results.NotFound(ResponseMessage.Create($"The user with the UUID: \"{userUuid}\" was not found.",
-                HttpStatusCode.NotFound));
+                                                           HttpStatusCode.NotFound));
 
         if (!profile.UserWhiteListGuid.Any(c => c.Equals(userUuid)))
             return Results.BadRequest(ResponseMessage.Create(
-                $"The user with the UUID: \"{userUuid}\" is not found in the white list of profile users",
-                HttpStatusCode.BadRequest));
+                                          $"The user with the UUID: \"{userUuid}\" is not found in the white list of profile users",
+                                          HttpStatusCode.BadRequest));
 
         profile.UserWhiteListGuid.Remove(user.Uuid);
         await akvilaManager.Profiles.SaveProfiles();
 
         return Results.Ok(ResponseMessage.Create("User successfully removed from profile whitelist",
-            HttpStatusCode.OK));
+                                                 HttpStatusCode.OK));
     }
 }

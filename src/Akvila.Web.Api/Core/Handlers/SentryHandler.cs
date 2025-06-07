@@ -88,7 +88,16 @@ public abstract class SentryHandler : ISentryHandler {
         return Results.Empty;
     }
 
-    public static async Task<IResult> GetBugs(IAkvilaManager akvilaManager, SentryFilterDto filter) {
+    public static async Task<IResult> SolveAllBugs(IAkvilaManager gmlManager)
+    {
+        await gmlManager.BugTracker.SolveAllAsync();
+
+        return Results.Ok(ResponseMessage.Create("All errors have been cleared", HttpStatusCode.OK));
+    }
+
+
+    public static async Task<IResult> GetBugs(IAkvilaManager akvilaManager, SentryFilterDto filter)
+    {
         var minDate = filter.DateFrom ?? DateTime.MinValue;
         var maxDate = filter.DateTo?.Date.AddDays(1).AddTicks(-1) ?? DateTime.MaxValue;
         var bugs = (await akvilaManager.BugTracker.GetFilteredBugs(c => c.Date >= minDate && c.Date <= maxDate))

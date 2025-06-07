@@ -46,11 +46,10 @@ public class PluginMiddleware {
         } catch (Exception exeption) {
             Console.WriteLine(exeption);
             akvilaManager.BugTracker.CaptureException(exeption);
-            await context.Response.WriteAsJsonAsync(ResponseMessage.Create([
-                new ValidationFailure {
-                    ErrorMessage = exeption.Message,
-                }
-            ], "The server accepted the request, but was unable to process it", HttpStatusCode.UnprocessableContent));
+            await context.Response.WriteAsJsonAsync(ResponseMessage.Create([new ValidationFailure
+            {
+                ErrorMessage = exeption.Message,
+            }], "The server accepted the request, but was unable to process it", HttpStatusCode.UnprocessableContent));
         }
 
         // Debug.WriteLine($"Unload successful: {!reference.IsAlive}");

@@ -132,6 +132,7 @@ public static class ApplicationExtensions {
             .AddTransient<EasyCabinetAuthService>()
             .AddTransient<CustomEndpointAuthService>()
             .AddTransient<NamelessMCAuthService>()
+            .AddTransient<WebMCRAuthService>()
             .AddTransient<AzuriomAuthService>()
             .AddTransient<AnyAuthService>()
             .RegisterRepositories()

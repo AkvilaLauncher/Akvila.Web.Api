@@ -41,7 +41,7 @@ public class FileHandler : IFileHandler {
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
                 HttpStatusCode.BadRequest));
 
-        fileDto = fileDto.DistinctBy(c => c.Hash).ToList();
+        fileDto = fileDto.DistinctBy(c => c.Directory).ToList();
 
         var profileNames = fileDto.GroupBy(c => c.ProfileName);
 
@@ -53,14 +53,7 @@ public class FileHandler : IFileHandler {
                     HttpStatusCode.NotFound));
 
             foreach (var fileInfo in profileFiles) {
-                var file = await manager.Files.DownloadFileStream(fileInfo.Hash, new MemoryStream(),
-                    new HeaderDictionary());
-
-                if (file == null)
-                    return Results.NotFound(ResponseMessage.Create(
-                        "No information on the file was found. You may not have built a profile.", HttpStatusCode.NotFound));
-
-                await manager.Profiles.AddFileToWhiteList(profile, file);
+                await manager.Profiles.AddFileToWhiteList(profile, new LocalFileInfo(fileInfo.Directory));
             }
         }
 
@@ -79,7 +72,7 @@ public class FileHandler : IFileHandler {
             return Results.BadRequest(ResponseMessage.Create(result.Errors, "Validation error",
                 HttpStatusCode.BadRequest));
 
-        fileDto = fileDto.DistinctBy(c => c.Hash).ToList();
+        fileDto = fileDto.DistinctBy(c => c.Directory).ToList();
 
         var profileNames = fileDto.GroupBy(c => c.ProfileName);
 
@@ -90,16 +83,8 @@ public class FileHandler : IFileHandler {
                 return Results.NotFound(ResponseMessage.Create($"A profile named \"{profileFiles.Key}\" was not found.",
                     HttpStatusCode.NotFound));
 
-            foreach (var fileInfo in profileFiles.DistinctBy(c => c.Hash)) {
-                var file = await manager.Files.DownloadFileStream(fileInfo.Hash, new MemoryStream(),
-                    new HeaderDictionary());
-
-                if (file == null)
-                    return Results.NotFound(ResponseMessage.Create(
-                        "No information on the file was found. You may not have built a profile.",
-                        HttpStatusCode.NotFound));
-
-                await manager.Profiles.RemoveFileFromWhiteList(profile, file);
+            foreach (var fileInfo in profileFiles.DistinctBy(c => c.Directory)) {
+                await manager.Profiles.RemoveFileFromWhiteList(profile, new LocalFileInfo(fileInfo.Directory));
             }
         }
 
