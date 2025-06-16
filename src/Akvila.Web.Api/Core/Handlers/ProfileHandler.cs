@@ -404,7 +404,7 @@ public class ProfileHandler : IProfileHandler {
             message += ". There was a skipped deletion:";
             message += string.Join(",", notRemovedProfiles);
         } else {
-            message += $$""". Profiles: "{profileNames}" deleted..""";
+            message += $""". Profiles: "{profileNames}" deleted..""";
         }
 
         await akvilaManager.Notifications.SendMessage("Deleting profiles", message, NotificationType.Info);
