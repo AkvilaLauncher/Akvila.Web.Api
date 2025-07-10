@@ -1,4 +1,3 @@
-using Akvila.Web.Api.Core.Extensions;
 using AkvilaCore.Interfaces.Enums;
 
 namespace Akvila.Web.Api.Core.Integrations.Auth;
@@ -16,6 +15,7 @@ public class AuthServiceFactory(IServiceProvider serviceProvider) : IAuthService
             AuthType.NamelessMC => serviceProvider.GetRequiredService<NamelessMCAuthService>(),
             AuthType.WebMCRReloaded => serviceProvider.GetRequiredService<WebMCRAuthService>(),
             AuthType.WordPress => serviceProvider.GetRequiredService<WordPressAuthService>(),
+            AuthType.Microsoft => serviceProvider.GetRequiredService<MicrosoftAuthService>(),
             _ => throw new ArgumentOutOfRangeException(nameof(platformKey), platformKey, null)
         };
     }

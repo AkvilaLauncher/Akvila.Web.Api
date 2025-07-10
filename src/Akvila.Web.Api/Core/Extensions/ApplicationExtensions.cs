@@ -135,6 +135,7 @@ public static class ApplicationExtensions {
             .AddTransient<WebMCRAuthService>()
             .AddTransient<AzuriomAuthService>()
             .AddTransient<AnyAuthService>()
+            .AddTransient<MicrosoftAuthService>()
             .RegisterRepositories()
             .RegisterValidators()
             .RegisterCors(settings.PolicyName)

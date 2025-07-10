@@ -2,7 +2,6 @@ using System.Text;
 using Akvila.Web.Api.Domains.Integrations;
 using AkvilaCore.Interfaces;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Akvila.Web.Api.Core.Integrations.Auth;
 

@@ -5,7 +5,7 @@ using Akvila.Core.Launcher;
 
 namespace Akvila.Web.Api.Core.Extensions;
 
-public static class GmlConfigurationExtension {
+public static class AkvilaConfigurationExtension {
     public static IServiceCollection ConfigureGmlManager(
         this IServiceCollection services,
         string projectName,

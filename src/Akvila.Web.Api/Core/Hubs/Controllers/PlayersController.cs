@@ -6,6 +6,7 @@ using Akvila.Web.Api.Domains.User;
 using AkvilaCore.Interfaces;
 using AkvilaCore.Interfaces.Launcher;
 using Akvila.Core.User;
+using AkvilaCore.Interfaces.Enums;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.JsonWebTokens;
 
@@ -23,6 +24,36 @@ public class PlayersController : ConcurrentDictionary<string, UserLauncherInfo> 
 
     public async Task AddLauncherConnection(string connectionId, ISingleClientProxy connection,
         ClaimsPrincipal contextUser) {
+        var activeAuthService = await _akvilaManager.Integrations.GetActiveAuthService();
+        if (activeAuthService?.AuthType == AuthType.Microsoft) {
+            var authUser = new AuthUser {
+                Name = "MicrosoftUser",
+                Uuid = "00000000-0000-0000-0000-000000000000"
+            };
+            LauncherInfos.TryAdd(connectionId, new UserLauncherInfo {
+                User = authUser,
+                ExpiredDate = DateTimeOffset.Now.AddSeconds(30),
+                Connection = connection
+            });
+
+            await connection.SendAsync("RequestLauncherHash");
+
+            var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(5))
+                .Subscribe(_ => {
+                    if (!LauncherInfos.TryGetValue(connectionId, out var userInfo)
+                        || DateTimeOffset.Now > userInfo.ExpiredDate) {
+                        RemoveLauncherConnection(connectionId);
+                    } else {
+                        connection.SendAsync("RequestLauncherHash");
+                    }
+                });
+
+            Timers.TryAdd(connectionId, timer);
+
+            Debug.WriteLine($"{authUser.Name} | {authUser.Uuid} | Connected");
+            return;
+        }
+        
         var userName = contextUser.FindFirstValue(JwtRegisteredClaimNames.Name);
         if (!string.IsNullOrEmpty(userName) && await _akvilaManager.Users.GetUserByName(userName) is AuthUser user) {
             LauncherInfos.TryAdd(connectionId, new UserLauncherInfo {

@@ -211,4 +211,33 @@ public class AuthIntegrationHandler : IAuthIntegrationHandler {
 
         return Results.Ok(ResponseMessage.Create("The authorization service has been successfully removed", HttpStatusCode.OK));
     }
+    
+    public static async Task<IResult> GetAuthType(IAkvilaManager akvilaManager) {
+        AuthGeneralType authType;
+        AuthType type = await akvilaManager.Integrations.GetAuthType();
+        var activeAuthService = await akvilaManager.Integrations.GetActiveAuthService();
+
+        switch (type) {
+            case AuthType.Undefined:
+                authType = AuthGeneralType.Undefined;
+                break;
+            case AuthType.Any:
+                authType = AuthGeneralType.Any;
+                break;
+            case AuthType.Microsoft:
+                authType = AuthGeneralType.Microsoft;
+                break;
+            default:
+                authType = AuthGeneralType.Classic;
+                break;
+        }
+        
+        AuthTypeReadDto dto = new() {
+            AuthType = authType,
+            Data = authType == AuthGeneralType.Microsoft
+                ? activeAuthService?.Endpoint ?? string.Empty
+                : string.Empty
+        };
+        return Results.Ok(ResponseMessage.Create(dto, string.Empty, HttpStatusCode.OK));
+    }
 }

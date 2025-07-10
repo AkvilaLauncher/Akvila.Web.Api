@@ -69,7 +69,7 @@ public static class EndpointsExtensions {
             .RequireAuthorization(c => c.RequireRole("Admin"));
         app.MapHub<GameServerHub>("/ws/gameServer")
             .RequireAuthorization(c => c.RequireRole("Admin"));
-        app.MapHub<LauncherHub>("/ws/launcher").RequireAuthorization();
+        app.MapHub<LauncherHub>("/ws/launcher");
         app.MapHub<NotificationHub>("/ws/notifications")
             .RequireAuthorization(c => c.RequireRole("Admin"));
 
@@ -487,6 +487,17 @@ public static class EndpointsExtensions {
             .Produces<ResponseMessage<AuthServiceReadDto>>()
             .Produces<ResponseMessage>((int)HttpStatusCode.BadRequest)
             .RequireAuthorization(c => c.RequireRole("Admin"));
+        
+        app.MapGet("/api/v1/integrations/auth/active/type", AuthIntegrationHandler.GetAuthType)
+            .WithOpenApi(generatedOperation => {
+                generatedOperation.Summary = "Getting the type of active authorization service";
+                return generatedOperation;
+            })
+            .WithDescription("Getting the type of active authorization service")
+            .WithName("Get auth type")
+            .WithTags("Integration/Auth")
+            .Produces<ResponseMessage<AuthTypeReadDto>>()
+            .Produces<ResponseMessage>((int)HttpStatusCode.BadRequest);
 
         #endregion
 
@@ -566,8 +577,7 @@ public static class EndpointsExtensions {
             .WithName("Profiles list")
             .WithTags("Profiles")
             .Produces<ResponseMessage<List<ProfileReadDto>>>()
-            .Produces<ResponseMessage>((int)HttpStatusCode.BadRequest)
-            .RequireAuthorization(c => c.RequireRole("Player", "Admin"));
+            .Produces<ResponseMessage>((int)HttpStatusCode.BadRequest);
 
         app.MapGet("/api/v1/profiles/versions/{gameLoader}/{minecraftVersion}", ProfileHandler.GetMinecraftVersions)
             .WithOpenApi(generatedOperation => {
