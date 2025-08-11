@@ -458,7 +458,6 @@ public class ProfileHandler : IProfileHandler {
             HttpStatusCode.OK));
     }
 
-    [Authorize]
     public static async Task<IResult> GetMods(
         IAkvilaManager akvilaManager,
         IMapper mapper,
@@ -500,7 +499,6 @@ public class ProfileHandler : IProfileHandler {
         }
     }
 
-    [Authorize]
     public static async Task<IResult> GetModsDetails(
         IAkvilaManager akvilaManager,
         IMapper mapper) {

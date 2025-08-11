@@ -661,8 +661,7 @@ public static class EndpointsExtensions {
             .WithDescription("Getting the list of mods in profile")
             .WithName("Get profile mods")
             .WithTags("Profiles")
-            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound)
-            .RequireAuthorization(c => c.RequireRole("Admin"));
+            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound);
 
         app.MapPut("/api/v1/mods/details", ProfileHandler.UpdateModInfo)
             .WithOpenApi(generatedOperation => {
@@ -683,8 +682,7 @@ public static class EndpointsExtensions {
             .WithDescription("Getting information about mods")
             .WithName("Get mod details")
             .WithTags("Mods")
-            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound)
-            .RequireAuthorization(c => c.RequireRole("Admin", "Player"));
+            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound);
 
         app.MapPost("/api/v1/profiles/{profileName}/mods/load", ProfileHandler.LoadMod)
             .WithOpenApi(generatedOperation => {
@@ -727,8 +725,7 @@ public static class EndpointsExtensions {
             .WithDescription("Getting the list of optional mods in profile")
             .WithName("Get optional profile mods")
             .WithTags("Profiles")
-            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound)
-            .RequireAuthorization(c => c.RequireRole("Admin", "Player"));
+            .Produces<ResponseMessage>((int)HttpStatusCode.NotFound);
 
         app.MapGet("/api/v1/profiles/{profileName}/mods/search", ProfileHandler.FindMods)
             .WithOpenApi(generatedOperation => {
